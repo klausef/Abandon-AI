@@ -301,4 +301,7 @@ The dashboard remains on mock login and mock data. Convex user APIs continue to
 fail closed until real authentication is selected; processor ingestion uses its
 separate HMAC credential path.
 #   A I - A s s i s t O b j e c t  
+ #   A I - A s s i s t O b j e c t  
+ #   A I - A s s i s t O b j e c t  
+ #   k l a u s e f - A I - A s s i s t O b j e c t  
  
