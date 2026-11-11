@@ -21,3 +21,7 @@ __pycache__/
 node_modules/
 dist/
 coverage/
+
+# Local service and CLI state
+.convex/
+.kaggle/
