@@ -1,0 +1,53 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "campus-safety-processor"
+version = "0.1.0"
+description = "Roboflow-powered unattended-object event processor for Campus Safety Command"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "httpx>=0.28,<1",
+  "python-dotenv>=1.1,<2",
+]
+
+[project.optional-dependencies]
+vision = [
+  "inference-sdk>=1.8,<2",
+  "numpy>=2.0,<3",
+  "opencv-python>=4.10,<5",
+  "supervision>=0.31,<1",
+  "trackers>=2.6,<3",
+]
+dev = [
+  "mypy>=1.18,<2",
+  "pytest>=9,<10",
+  "pytest-cov>=7,<8",
+  "respx>=0.22,<1",
+  "ruff>=0.14,<1",
+]
+
+[project.scripts]
+campus-safety-processor = "campus_safety_processor.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/campus_safety_processor"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = true
+packages = ["campus_safety_processor"]
