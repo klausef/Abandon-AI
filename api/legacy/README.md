@@ -1,6 +1,6 @@
 # Campus Safety API
 
-> **DECOMMISSIONED / LEGACY:** This FastAPI + PostgreSQL foundation is inactive and is not part of the active Phase 7A architecture. The Convex backend in `apps/web-dashboard/convex` is the sole active backend. This directory and the repository root `compose.yaml` are retained unchanged for historical reference only. Do not deploy, extend, or depend on them.
+> **DECOMMISSIONED / LEGACY:** This FastAPI + PostgreSQL foundation is inactive and is not part of the active Phase 7A architecture. The Convex backend in `api/convex` is the sole active backend. This directory and the repository root `compose.yaml` are retained unchanged for historical reference only. Do not deploy, extend, or depend on them.
 
 FastAPI backend foundation for Campus Safety Command.
 
@@ -32,5 +32,5 @@ health/version endpoints, migrations, and tests. Authentication, operational
 CRUD endpoints, WebSockets, AI processing, and CCTV connections were never
 implemented here.
 
-The active backend is Convex. See `apps/web-dashboard/convex/README.md` and the
+The active backend is Convex. See `api/convex/README.md` and the
 repository root `README.md`.

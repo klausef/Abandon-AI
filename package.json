@@ -1,0 +1,16 @@
+{
+  "name": "abandon-ai",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "lint": "npm --prefix frontend run lint",
+    "test": "npm --prefix frontend test && npm --prefix api test",
+    "test:frontend": "npm --prefix frontend test",
+    "test:api": "npm --prefix api test",
+    "typecheck:api": "npm --prefix api run typecheck",
+    "convex:dev": "npm --prefix api run convex:dev",
+    "convex:codegen": "npm --prefix api run convex:codegen"
+  }
+}

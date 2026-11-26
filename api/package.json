@@ -1,0 +1,24 @@
+{
+  "name": "abandon-ai-api",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "convex:dev": "convex dev",
+    "convex:codegen": "convex codegen",
+    "typecheck": "tsc -p convex/tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "convex": "^1.49.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@edge-runtime/vm": "^5.0.0",
+    "@types/node": "^24.19.2",
+    "convex-test": "^0.0.69",
+    "typescript": "~7.0.2",
+    "vite": "^8.3.6",
+    "vitest": "^5.1.0"
+  }
+}

@@ -5,7 +5,7 @@ Stores a newly rotated Roboflow API key in the processor's ignored .env file.
 .DESCRIPTION
 Prompts with a masked SecureString so the key is not echoed or placed in shell
 history. The processor needs the plaintext value at runtime, so it is written
-only to apps/processor/.env, which is excluded by the repository .gitignore.
+only to api/processor/.env, which is excluded by the repository .gitignore.
 
 Do not use a key that has appeared in chat, logs, source code, or screenshots.
 #>
@@ -52,7 +52,7 @@ try {
   }
 
   Set-Content -Path $envPath -Value $updated -Encoding utf8
-  Write-Host 'Updated apps/processor/.env. The key was not displayed.'
+  Write-Host 'Updated api/processor/.env. The key was not displayed.'
 } finally {
   if ($bstr -ne [IntPtr]::Zero) {
     [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
