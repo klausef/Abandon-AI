@@ -13,6 +13,7 @@ from .classes import DEFAULT_CLASS_PROMPTS, normalize_model_class
 _IDENTIFIER_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 _MODEL_VERSIONS = {"v2-s", "v2-m", "v2-l", "v2-x", "s", "m", "l", "x"}
 ProcessorSourceMode: TypeAlias = Literal["disabled", "video", "tapo_rtsp"]
+RtspTransport: TypeAlias = Literal["tcp", "udp"]
 
 
 class ConfigurationError(ValueError):
@@ -50,6 +51,13 @@ def _boolean(env: Mapping[str, str], name: str, default: bool = False) -> bool:
     if normalized in {"0", "false", "no", "off"}:
         return False
     raise ConfigurationError(f"{name} must be true or false.")
+
+
+def _rtsp_transport(env: Mapping[str, str]) -> RtspTransport:
+    value = env.get("RTSP_TRANSPORT", "tcp").strip().lower()
+    if value not in {"tcp", "udp"}:
+        raise ConfigurationError("RTSP_TRANSPORT must be tcp or udp.")
+    return cast(RtspTransport, value)
 
 
 def _float(
@@ -100,6 +108,8 @@ class ProcessorSettings:
     monitoring_zone_id: str | None
     monitoring_zone_polygon: tuple[tuple[float, float], ...] | None
     video_source: str
+    rtsp_transport: RtspTransport
+    rtsp_timeout_seconds: float
     roboflow_api_key: str
     roboflow_api_url: str
     roboflow_model_version: str
@@ -169,6 +179,10 @@ class ProcessorSettings:
             raise ConfigurationError(
                 "VIDEO_SOURCE_AUTHORIZED=true is required before processing video."
             )
+        rtsp_transport = _rtsp_transport(env)
+        rtsp_timeout_seconds = _float(
+            env, "RTSP_TIMEOUT_SECONDS", 10, minimum=1, maximum=120
+        )
         if not _boolean(env, "ROBOFLOW_CLOUD_UPLOAD_ACKNOWLEDGED"):
             raise ConfigurationError(
                 "ROBOFLOW_CLOUD_UPLOAD_ACKNOWLEDGED=true is required because frames "
@@ -224,6 +238,8 @@ class ProcessorSettings:
             monitoring_zone_id=zone_id,
             monitoring_zone_polygon=zone_polygon,
             video_source=video_source,
+            rtsp_transport=rtsp_transport,
+            rtsp_timeout_seconds=rtsp_timeout_seconds,
             roboflow_api_key=_required(env, "ROBOFLOW_API_KEY"),
             roboflow_api_url=env.get(
                 "ROBOFLOW_API_URL", "https://serverless.roboflow.com"

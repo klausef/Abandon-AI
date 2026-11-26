@@ -112,6 +112,8 @@ class ProcessorPipeline:
                 self.settings.video_source,
                 sample_fps=self.settings.sample_fps,
                 max_sampled_frames=self.settings.max_sampled_frames,
+                rtsp_transport=self.settings.rtsp_transport,
+                timeout_seconds=self.settings.rtsp_timeout_seconds,
             ) as reader:
                 for packet in reader.frames():
                     batch = filter_objects_to_polygon(

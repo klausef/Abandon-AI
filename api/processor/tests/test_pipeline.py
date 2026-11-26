@@ -87,6 +87,8 @@ def settings() -> ProcessorSettings:
         monitoring_zone_id="ZONE-DEMO-001",
         monitoring_zone_polygon=((0.1, 0.1), (0.9, 0.1), (0.9, 0.9), (0.1, 0.9)),
         video_source="authorized.mp4",
+        rtsp_transport="tcp",
+        rtsp_timeout_seconds=10,
         roboflow_api_key="test-key",
         roboflow_api_url="https://serverless.roboflow.com",
         roboflow_model_version="v2-s",

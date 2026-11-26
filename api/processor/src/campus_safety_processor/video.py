@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 import time
 from collections.abc import Iterator
@@ -28,10 +29,14 @@ class VideoReader:
         *,
         sample_fps: float,
         max_sampled_frames: int | None = None,
+        rtsp_transport: str = "tcp",
+        timeout_seconds: float = 10.0,
     ) -> None:
         self.source = source
         self.sample_fps = sample_fps
         self.max_sampled_frames = max_sampled_frames
+        self.rtsp_transport = rtsp_transport
+        self.timeout_seconds = timeout_seconds
         self._capture: Any | None = None
         self._cv2: Any | None = None
 
@@ -43,19 +48,45 @@ class VideoReader:
                 "OpenCV is missing. Install the processor with [vision]."
             ) from error
         self._cv2 = cv2
-        parsed_source: str | int
         if self.source.isdigit():
-            parsed_source = int(self.source)
+            self._capture = cv2.VideoCapture(int(self.source))
+        elif _is_rtsp_url(self.source):
+            os.environ.setdefault(
+                "OPENCV_FFMPEG_CAPTURE_OPTIONS",
+                build_ffmpeg_capture_options(self.rtsp_transport),
+            )
+            self._capture = self._open_stream(cv2, self.source)
         else:
-            parsed_source = self.source
             if not _is_stream_url(self.source) and not Path(self.source).is_file():
                 raise VideoSourceError("The configured video file does not exist.")
-        self._capture = cv2.VideoCapture(parsed_source)
+            self._capture = cv2.VideoCapture(self.source)
         if not self._capture.isOpened():
             self._capture.release()
             self._capture = None
-            raise VideoSourceError("The configured video source could not be opened.")
+            raise VideoSourceError(
+                "The configured video source could not be opened: "
+                f"{redact_video_source(self.source)}"
+            )
         return self
+
+    def _open_stream(self, cv2: Any, source: str) -> Any:
+        """Open an RTSP stream through FFmpeg with bounded open/read timeouts."""
+
+        timeout_ms = max(1_000, int(self.timeout_seconds * 1_000))
+        params: list[int] = []
+        for name in ("CAP_PROP_OPEN_TIMEOUT_MSEC", "CAP_PROP_READ_TIMEOUT_MSEC"):
+            prop = getattr(cv2, name, None)
+            if prop is not None:
+                params.extend([int(prop), timeout_ms])
+        try:
+            if params:
+                return cv2.VideoCapture(source, cv2.CAP_FFMPEG, params)
+            return cv2.VideoCapture(source, cv2.CAP_FFMPEG)
+        except Exception as error:  # OpenCV raises backend-specific errors.
+            raise VideoSourceError(
+                "The configured video source could not be opened: "
+                f"{redact_video_source(source)}"
+            ) from error
 
     def __exit__(self, *_: object) -> None:
         if self._capture is not None:
@@ -101,6 +132,19 @@ def redact_video_source(source: str) -> str:
         scheme = source.split(":", 1)[0].lower()
         return f"{scheme}://[redacted]"
     return Path(source).name
+
+
+def build_ffmpeg_capture_options(transport: str) -> str:
+    """Return OpenCV's FFmpeg options string for an RTSP transport."""
+
+    normalized = transport.strip().lower()
+    if normalized not in {"tcp", "udp"}:
+        raise VideoSourceError("RTSP transport must be tcp or udp.")
+    return f"rtsp_transport;{normalized}"
+
+
+def _is_rtsp_url(source: str) -> bool:
+    return bool(re.match(r"^rtsps?://", source, flags=re.IGNORECASE))
 
 
 def _is_stream_url(source: str) -> bool:

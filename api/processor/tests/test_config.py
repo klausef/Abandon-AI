@@ -61,6 +61,33 @@ def test_rejects_missing_required_values(missing_name: str) -> None:
         ProcessorSettings.from_env(environment)
 
 
+def test_defaults_rtsp_transport_to_tcp_and_bounds_timeout() -> None:
+    environment = valid_environment()
+    environment["PROCESSOR_SOURCE_MODE"] = "tapo_rtsp"
+    environment["VIDEO_SOURCE"] = "rtsp://user:pass@192.168.1.50:554/stream1"
+    settings = ProcessorSettings.from_env(environment)
+    assert settings.rtsp_transport == "tcp"
+    assert settings.rtsp_timeout_seconds == 10
+
+    environment["RTSP_TRANSPORT"] = "udp"
+    environment["RTSP_TIMEOUT_SECONDS"] = "25"
+    settings = ProcessorSettings.from_env(environment)
+    assert settings.rtsp_transport == "udp"
+    assert settings.rtsp_timeout_seconds == 25
+
+
+def test_rejects_unknown_rtsp_transport_and_out_of_range_timeout() -> None:
+    environment = valid_environment()
+    environment["RTSP_TRANSPORT"] = "quic"
+    with pytest.raises(ConfigurationError, match="RTSP_TRANSPORT"):
+        ProcessorSettings.from_env(environment)
+
+    environment = valid_environment()
+    environment["RTSP_TIMEOUT_SECONDS"] = "0"
+    with pytest.raises(ConfigurationError, match="RTSP_TIMEOUT_SECONDS"):
+        ProcessorSettings.from_env(environment)
+
+
 def test_requires_explicit_video_and_cloud_upload_authorization() -> None:
     environment = valid_environment()
     environment["VIDEO_SOURCE_AUTHORIZED"] = "false"
