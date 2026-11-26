@@ -34,22 +34,51 @@ commit or share the camera-account credentials.
 1. In the Tapo app, open **Advanced Settings → Camera Account** and set a
    dedicated username and password. This is separate from your TP-Link login.
 2. Reserve the camera's LAN IP address in your router.
-3. Validate the stream before starting the processor:
+3. Run the guided setup from `api/processor`:
+
+```powershell
+.\scripts\configure-tapo.ps1
+```
+
+It prompts for the host, username, and password (hidden), validates the stream
+with ffprobe, and writes only the source-related keys to the ignored `.env`.
+Use `-Frames 240` for a two-minute run, or `-SkipProbe` when ffprobe is not
+available.
+
+To probe without changing configuration:
 
 ```powershell
 .\scripts\check-rtsp.ps1 -CameraHost 192.168.1.50 -Username operator `
-  -Password 'camera-account-password' -Stream stream2 -OutputFrame .\frame.jpg
+  -Stream stream2 -OutputFrame .\frame.jpg
 ```
 
-4. Configure `.env`:
+The password prompt is masked. For unattended automation, supply a
+`SecureString` with `-Password`; never put a plaintext password on the command
+line. Automated `configure-tapo.ps1` calls must also include
+`-AcknowledgeAuthorizedCloudUpload`.
+
+4. Validate Convex, the camera, and (optionally) Roboflow without ingesting
+   events:
+
+```powershell
+uv run campus-safety-processor --doctor
+uv run campus-safety-processor --doctor --check-roboflow
+```
+
+`--check-roboflow` sends one frame and consumes one hosted inference.
+The read-only Convex doctor check confirms endpoint health but cannot validate
+the HMAC device secret; the bounded processor run validates signed ingestion.
+
+The equivalent manual `.env` settings are:
 
 ```dotenv
 PROCESSOR_SOURCE_MODE=tapo_rtsp
-VIDEO_SOURCE=rtsp://operator:camera-account-password@192.168.1.50:554/stream2
+VIDEO_SOURCE=rtsp://CAMERA_USER:URL_ENCODED_PASSWORD@CAMERA_IP:554/stream2
 VIDEO_SOURCE_AUTHORIZED=true
 ROBOFLOW_CLOUD_UPLOAD_ACKNOWLEDGED=true
 RTSP_TRANSPORT=tcp
 RTSP_TIMEOUT_SECONDS=10
+MAX_SAMPLED_FRAMES=10
 ```
 
 `stream1` is the HD stream and `stream2` is the lower-resolution stream, which

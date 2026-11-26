@@ -51,7 +51,8 @@ try {
     $updated += "ROBOFLOW_API_KEY=$key"
   }
 
-  Set-Content -Path $envPath -Value $updated -Encoding utf8
+  $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+  [System.IO.File]::WriteAllLines($envPath, [string[]]$updated, $utf8NoBom)
   Write-Host 'Updated api/processor/.env. The key was not displayed.'
 } finally {
   if ($bstr -ne [IntPtr]::Zero) {
